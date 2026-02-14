@@ -1,23 +1,33 @@
 package org.example.COR;
 
 import org.example.Enums.CashType;
-import org.example.Persistance.CashRepositry;
+import org.example.Persistance.CashRepository;
 
-public class ThousandDispenser extends CashDispenser{
-    CashRepositry cashRepositry;
+public class ThousandDispenser extends CashDispenser {
+    private CashRepository cashRepository;
 
-    public ThousandDispenser(CashRepositry cashRepositry){
-        this.cashRepositry = cashRepositry;
+    public ThousandDispenser(CashRepository cashRepository) {
+        this.cashRepository = cashRepository;
     }
+
     @Override
     public void dispense(int amount) {
-        int thousand_needed_count = amount / 1000;
-        int thousand_cnt = cashRepositry.getCashCount(CashType.THOUSAND);
-        if(thousand_cnt >= thousand_needed_count){
-            nextCashDispenser.dispense(amount - thousand_needed_count*1000);
-        } else {
-            int amountSub = 2000*thousand_cnt;
-            nextCashDispenser.dispense(amount - amountSub);
+        int thousandNeededCount = amount / 1000;
+        int thousandAvailable = cashRepository.getCashCount(CashType.THOUSAND);
+        int dispensed = Math.min(thousandNeededCount, thousandAvailable);
+        int remainingAmount = amount - (dispensed * 1000);
+
+        if (dispensed > 0) {
+            System.out.println("Dispensed " + (dispensed * 1000) + " in 1000 notes");
+            cashRepository.updateCashCount(CashType.THOUSAND, -dispensed);
+        }
+
+        if (remainingAmount > 0) {
+            if (nextCashDispenser != null) {
+                nextCashDispenser.dispense(remainingAmount);
+            } else {
+                System.out.println("Cannot dispense remaining amount: " + remainingAmount);
+            }
         }
     }
 }

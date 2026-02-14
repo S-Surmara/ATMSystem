@@ -1,24 +1,57 @@
 package org.example.Persistance;
 
 import org.example.Entity.Account;
-
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public abstract class AccountBackend {
-    List<Account> accountList;
+public class AccountBackend {
+    private Map<String, Account> accountMap;
+
+    public AccountBackend() {
+        accountMap = new HashMap<>();
+    }
 
     public List<Account> getAccountList() {
-        return accountList;
+        return new ArrayList<>(accountMap.values());
     }
 
-    public void setAccountList(List<Account> accountList) {
-        this.accountList = accountList;
+    public Account getAccount(String accountId) {
+        return accountMap.get(accountId);
     }
 
-    public abstract int getAccountBalance(String accountId);
-    public abstract void addBalanceAccount(String accountId,int balance);
+    public double getAccountBalance(String accountId) {
+        Account account = accountMap.get(accountId);
+        if (account == null) {
+            throw new IllegalArgumentException("Account not found: " + accountId);
+        }
+        return account.getBalance();
+    }
 
-    public abstract void deleteAccount(String accountId);
+    public void updateBalance(String accountId, double amount) {
+        Account account = accountMap.get(accountId);
+        if (account == null) {
+            throw new IllegalArgumentException("Account not found: " + accountId);
+        }
+        account.setBalance(account.getBalance() + amount);
+    }
 
-    public abstract void createAccount(Account account);
+    public void deleteAccount(String accountId) {
+        if (!accountMap.containsKey(accountId)) {
+            throw new IllegalArgumentException("Account not found: " + accountId);
+        }
+        accountMap.remove(accountId);
+    }
+
+    public void createAccount(Account account) {
+        if (accountMap.containsKey(account.getAccountId())) {
+            throw new IllegalArgumentException("Account already exists: " + account.getAccountId());
+        }
+        accountMap.put(account.getAccountId(), account);
+    }
+
+    public boolean accountExists(String accountId) {
+        return accountMap.containsKey(accountId);
+    }
 }

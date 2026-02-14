@@ -1,25 +1,33 @@
 package org.example.COR;
 
 import org.example.Enums.CashType;
-import org.example.Persistance.CashRepositry;
+import org.example.Persistance.CashRepository;
 
-public class TwoThousandDispenser extends CashDispenser{
+public class TwoThousandDispenser extends CashDispenser {
+    private CashRepository cashRepository;
 
-    CashRepositry cashRepositry;
-
-    public TwoThousandDispenser(CashRepositry cashRepositry){
-        this.cashRepositry = cashRepositry;
+    public TwoThousandDispenser(CashRepository cashRepository) {
+        this.cashRepository = cashRepository;
     }
+
     @Override
     public void dispense(int amount) {
-        int two_thousand_needed_count = amount / 2000;
-        int two_thousand_cnt = cashRepositry.getCashCount(CashType.TWO_THOUSAND);
-        if(two_thousand_cnt >= two_thousand_needed_count){
-            System.out.println("Dispensed total cash");
-            // in business we will call abstraction layer to dispense the cash
-        } else {
-            System.out.println("Amount can't be processed , insufficient amount in ATM");
-            // in business we will refund the amount with error message
+        int twoThousandNeededCount = amount / 2000;
+        int twoThousandAvailable = cashRepository.getCashCount(CashType.TWO_THOUSAND);
+        int dispensed = Math.min(twoThousandNeededCount, twoThousandAvailable);
+        int remainingAmount = amount - (dispensed * 2000);
+
+        if (dispensed > 0) {
+            System.out.println("Dispensed " + (dispensed * 2000) + " in 2000 notes");
+            cashRepository.updateCashCount(CashType.TWO_THOUSAND, -dispensed);
+        }
+
+        if (remainingAmount > 0) {
+            if (nextCashDispenser != null) {
+                nextCashDispenser.dispense(remainingAmount);
+            } else {
+                System.out.println("Cannot dispense remaining amount: " + remainingAmount);
+            }
         }
     }
 }

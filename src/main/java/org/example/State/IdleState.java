@@ -5,33 +5,66 @@ import org.example.Entity.Machine;
 import org.example.Entity.Transaction;
 import org.example.Service.AuthenticationService;
 
-import java.time.LocalDate;
-import java.util.UUID;
+public class IdleState extends MachineState {
+    private Card insertedCard;
 
-public class IdleState extends MachineState{
-    Card card;
-    public IdleState(AuthenticationService authenticationService, Machine machine){
-        super(authenticationService,machine);
+    public IdleState(AuthenticationService authenticationService, Machine machine) {
+        super(authenticationService, machine);
     }
+
+    @Override
     public void insertCard() {
-        System.out.println("Inserted card successfully");
-        card = new Card(UUID.randomUUID().toString(), LocalDate.of(2050,12,29));
+        System.out.println("Card inserted. Please enter PIN.");
+        // In real implementation, card would be read from card reader
+        // For now, we'll handle this in the main flow
     }
+
+    public void insertCard(Card card) {
+        if (card == null) {
+            System.out.println("Invalid card");
+            return;
+        }
+        this.insertedCard = card;
+        System.out.println("Card inserted successfully: " + card.getCardNumber());
+        System.out.println("Please enter PIN");
+    }
+
+    @Override
     public void enterPin(int pin) {
-        System.out.println("validating pin");
-        boolean authenticated = authenticationService.validate(card,pin);
-        if(authenticated){
-            System.out.println("authenticated user successfully");
-            machine.setNextMachineState(new InProgressState(authenticationService,machine));
+        if (insertedCard == null) {
+            System.out.println("Please insert card first");
+            return;
+        }
+
+        System.out.println("Validating PIN...");
+        boolean authenticated = authenticationService.validate(insertedCard, pin);
+
+        if (authenticated) {
+            System.out.println("Authentication successful");
+            machine.setNextMachineState(new InProgressState(authenticationService, machine, insertedCard));
+        } else {
+            System.out.println("Authentication failed");
+            insertedCard = null; // Reset card
         }
     }
-    public void selectTransaction(Transaction transaction){
-        System.out.println("Invalid state , first authenticate yourself");
+
+    @Override
+    public void selectTransaction(Transaction transaction) {
+        System.out.println("Invalid operation. Please insert card and authenticate first.");
     }
-    public void enterAmountAndExecuteTransaction(int amount){
-        System.out.println("Invalid state , first authenticate yourself");
+
+    @Override
+    public void enterAmountAndExecuteTransaction(double amount) {
+        System.out.println("Invalid operation. Please insert card and authenticate first.");
     }
-    public void ejectCard(){
-        System.out.println("Invalid state , first authenticate yourself");
+
+    @Override
+    public void ejectCard() {
+        if (insertedCard != null) {
+            System.out.println("Card ejected");
+            insertedCard = null;
+        } else {
+            System.out.println("No card inserted");
+        }
     }
 }

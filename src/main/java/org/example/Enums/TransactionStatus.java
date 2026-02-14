@@ -1,8 +1,9 @@
 package org.example.Enums;
 
 public enum TransactionStatus {
-    INITIATED,
+    PENDING,
+    IN_PROGRESS,
     SUCCESS,
     FAILED,
-    REVERSED
+    CANCELLED
 }
